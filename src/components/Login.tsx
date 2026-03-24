@@ -33,7 +33,12 @@ export default function Login({ onLogin }: LoginProps) {
                 <UserCircle2 size={24} />
               </div>
               <div className="flex-1">
-                <div className="font-bold text-slate-900">{user.name}</div>
+                <div className="flex items-center gap-2">
+                  <div className="font-bold text-slate-900">{user.name}</div>
+                  {user.role === 'admin' && (
+                    <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded uppercase tracking-wider">Admin</span>
+                  )}
+                </div>
                 <div className="text-xs text-slate-400">{user.email}</div>
               </div>
               <LogIn size={18} className="text-slate-300 group-hover:text-emerald-500 transition-colors" />

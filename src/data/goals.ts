@@ -1,8 +1,15 @@
+export interface SubActivity {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
 export interface Activity {
   id: string;
   text: string;
   completed: boolean;
   isCustom?: boolean;
+  subActivities?: SubActivity[];
 }
 
 export type GoalStatus = 'planerad' | 'pågående' | 'utförd';
@@ -12,12 +19,14 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  role: 'user' | 'admin';
   avatar?: string;
 }
 
 export const DUMMY_USERS: User[] = [
-  { id: 'user-1', name: 'Dr. Erik Svensson', email: 'erik@exempel.se' },
-  { id: 'user-2', name: 'Dr. Maria Lindberg', email: 'maria@exempel.se' }
+  { id: 'user-1', name: 'Dr. Erik Svensson', email: 'erik@exempel.se', role: 'user' },
+  { id: 'user-2', name: 'Dr. Maria Lindberg', email: 'maria@exempel.se', role: 'user' },
+  { id: 'admin-1', name: 'Admin - Studierektor', email: 'admin@regionen.se', role: 'admin' }
 ];
 
 export interface Goal {
@@ -29,6 +38,15 @@ export interface Goal {
   activities: Activity[];
   status: GoalStatus;
   category: 'A' | 'B' | 'C';
+}
+
+export interface Rotation {
+  id: string;
+  clinic: string;
+  startDate: string;
+  endDate?: string;
+  activityIds: string[];
+  completedActivityIds?: string[];
 }
 
 export const GOALS_DATA: Goal[] = [
