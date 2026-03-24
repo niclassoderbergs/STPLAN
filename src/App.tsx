@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { LayoutDashboard, BookOpen, CheckSquare, Settings, Search, Filter, Info, LogOut, UserCircle2, Clock, Hospital, Calendar, Plus } from 'lucide-react';
+import { LayoutDashboard, BookOpen, CheckSquare, Settings, Search, Filter, Info, LogOut, UserCircle2, Clock, Hospital, Calendar, Plus, Menu } from 'lucide-react';
 import { GOALS_DATA, Goal, GoalStatus, Category, User, Rotation } from './data/goals';
 import GoalCard from './components/GoalCard';
 import ProgressBar from './components/ProgressBar';
@@ -444,7 +444,7 @@ export default function App() {
       </aside>
 
       {/* Main Content */}
-      <main className="lg:ml-64 p-4 md:p-8 lg:p-12 max-w-6xl mx-auto">
+      <main className="lg:ml-64 p-4 md:p-8 lg:p-12 max-w-6xl mx-auto pb-24 lg:pb-12">
         {/* Mobile Header (User Info) */}
         <div className="lg:hidden flex items-center justify-between mb-8 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
           <div className="flex items-center gap-3">
@@ -458,6 +458,24 @@ export default function App() {
           </div>
           <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-slate-600">
             <LogOut size={20} />
+          </button>
+        </div>
+
+        {/* Mobile Bottom Navigation */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-3 flex justify-around items-center z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+          <button 
+            onClick={() => { setCurrentView('GOALS'); setActiveCategory('ALL'); }}
+            className={`flex flex-col items-center gap-1 transition-all ${currentView === 'GOALS' ? 'text-emerald-600' : 'text-slate-400'}`}
+          >
+            <LayoutDashboard size={20} />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Översikt</span>
+          </button>
+          <button 
+            onClick={() => setCurrentView('ROTATIONS')}
+            className={`flex flex-col items-center gap-1 transition-all ${currentView === 'ROTATIONS' ? 'text-emerald-600' : 'text-slate-400'}`}
+          >
+            <Clock size={20} />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Randningar</span>
           </button>
         </div>
 
