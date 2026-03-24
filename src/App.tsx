@@ -72,7 +72,8 @@ export default function App() {
         const newActivity = {
           id: `${goalId}-custom-${Date.now()}`,
           text,
-          completed: false
+          completed: false,
+          isCustom: true
         };
         return { ...g, activities: [...g.activities, newActivity] };
       }

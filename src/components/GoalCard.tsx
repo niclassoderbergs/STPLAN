@@ -120,13 +120,15 @@ export default function GoalCard({ goal, onStatusChange, onActivityToggle, onAct
                           </div>
                           <span className="text-sm font-medium">{activity.text}</span>
                         </div>
-                        <button 
-                          onClick={() => onActivityDelete(goal.id, activity.id)}
-                          className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-300 hover:text-rose-500 transition-all"
-                          title="Ta bort aktivitet"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        {activity.isCustom && (
+                          <button 
+                            onClick={() => onActivityDelete(goal.id, activity.id)}
+                            className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-300 hover:text-rose-500 transition-all"
+                            title="Ta bort aktivitet"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>

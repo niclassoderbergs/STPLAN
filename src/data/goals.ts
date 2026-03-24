@@ -2,6 +2,7 @@ export interface Activity {
   id: string;
   text: string;
   completed: boolean;
+  isCustom?: boolean;
 }
 
 export type GoalStatus = 'planerad' | 'pågående' | 'utförd';
