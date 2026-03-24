@@ -5,6 +5,19 @@ export interface Activity {
 }
 
 export type GoalStatus = 'planerad' | 'pågående' | 'utförd';
+export type Category = 'A' | 'B' | 'C' | 'ALL';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+}
+
+export const DUMMY_USERS: User[] = [
+  { id: 'user-1', name: 'Dr. Erik Svensson', email: 'erik@exempel.se' },
+  { id: 'user-2', name: 'Dr. Maria Lindberg', email: 'maria@exempel.se' }
+];
 
 export interface Goal {
   id: string;

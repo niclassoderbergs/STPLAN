@@ -1,21 +1,54 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { LayoutDashboard, BookOpen, CheckSquare, Settings, Search, Filter, Info, Github } from 'lucide-react';
-import { GOALS_DATA, Goal, GoalStatus, Category } from './data/goals';
+import { LayoutDashboard, BookOpen, CheckSquare, Settings, Search, Filter, Info, LogOut, UserCircle2 } from 'lucide-react';
+import { GOALS_DATA, Goal, GoalStatus, Category, User } from './data/goals';
 import GoalCard from './components/GoalCard';
 import ProgressBar from './components/ProgressBar';
+import Login from './components/Login';
 
 export default function App() {
-  const [goals, setGoals] = useState<Goal[]>(() => {
-    const saved = localStorage.getItem('st_goals_progress');
-    return saved ? JSON.parse(saved) : GOALS_DATA;
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('st_current_user');
+    return saved ? JSON.parse(saved) : null;
   });
-  const [activeCategory, setActiveCategory] = useState<'A' | 'B' | 'C' | 'ALL'>('ALL');
+
+  const [goals, setGoals] = useState<Goal[]>(GOALS_DATA);
+  const [activeCategory, setActiveCategory] = useState<Category>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Load user specific goals when user changes
   useEffect(() => {
-    localStorage.setItem('st_goals_progress', JSON.stringify(goals));
-  }, [goals]);
+    if (currentUser) {
+      const storageKey = `st_goals_progress_${currentUser.id}`;
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        setGoals(JSON.parse(saved));
+      } else {
+        setGoals(GOALS_DATA);
+      }
+      localStorage.setItem('st_current_user', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('st_current_user');
+    }
+  }, [currentUser]);
+
+  // Save progress when goals change
+  useEffect(() => {
+    if (currentUser) {
+      const storageKey = `st_goals_progress_${currentUser.id}`;
+      localStorage.setItem(storageKey, JSON.stringify(goals));
+    }
+  }, [goals, currentUser]);
+
+  const handleLogin = (user: User) => {
+    setCurrentUser(user);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setActiveCategory('ALL');
+    setSearchQuery('');
+  };
 
   const handleStatusChange = (goalId: string, status: GoalStatus) => {
     setGoals(prev => prev.map(g => g.id === goalId ? { ...g, status } : g));
@@ -27,8 +60,30 @@ export default function App() {
         const newActivities = g.activities.map(a => 
           a.id === activityId ? { ...a, completed: !a.completed } : a
         );
-        // Auto-update status if all activities completed? Maybe not, let user decide.
         return { ...g, activities: newActivities };
+      }
+      return g;
+    }));
+  };
+
+  const handleActivityAdd = (goalId: string, text: string) => {
+    setGoals(prev => prev.map(g => {
+      if (g.id === goalId) {
+        const newActivity = {
+          id: `${goalId}-custom-${Date.now()}`,
+          text,
+          completed: false
+        };
+        return { ...g, activities: [...g.activities, newActivity] };
+      }
+      return g;
+    }));
+  };
+
+  const handleActivityDelete = (goalId: string, activityId: string) => {
+    setGoals(prev => prev.map(g => {
+      if (g.id === goalId) {
+        return { ...g, activities: g.activities.filter(a => a.id !== activityId) };
       }
       return g;
     }));
@@ -60,14 +115,36 @@ export default function App() {
     };
   }, [goals]);
 
+  if (!currentUser) {
+    return <Login onLogin={handleLogin} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-slate-900 font-sans">
       {/* Sidebar / Navigation */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col z-20">
-        <div className="p-6">
+      <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col z-20 shadow-sm">
+        <div className="p-6 flex-1 overflow-y-auto">
           <div className="flex items-center gap-2 mb-8">
             <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white font-bold">ST</div>
             <h1 className="font-bold text-lg tracking-tight">Målspåraren</h1>
+          </div>
+
+          <div className="mb-8 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                <UserCircle2 size={20} />
+              </div>
+              <div className="overflow-hidden">
+                <div className="font-bold text-sm truncate">{currentUser.name}</div>
+                <div className="text-[10px] text-slate-400 truncate uppercase tracking-wider font-semibold">Inloggad</div>
+              </div>
+            </div>
+            <button 
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all shadow-sm"
+            >
+              <LogOut size={14} /> Logga ut
+            </button>
           </div>
 
           <nav className="space-y-1">
@@ -99,7 +176,7 @@ export default function App() {
           </nav>
         </div>
 
-        <div className="mt-auto p-6 border-t border-slate-100">
+        <div className="p-6 border-t border-slate-100">
           <div className="bg-slate-50 rounded-xl p-4">
             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Din Progress</h4>
             <ProgressBar progress={stats.overall} />
@@ -112,13 +189,29 @@ export default function App() {
 
       {/* Main Content */}
       <main className="lg:ml-64 p-4 md:p-8 lg:p-12 max-w-6xl mx-auto">
+        {/* Mobile Header (User Info) */}
+        <div className="lg:hidden flex items-center justify-between mb-8 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+              <UserCircle2 size={20} />
+            </div>
+            <div>
+              <div className="font-bold text-sm">{currentUser.name}</div>
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider">ST-läkare</div>
+            </div>
+          </div>
+          <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-slate-600">
+            <LogOut size={20} />
+          </button>
+        </div>
+
         {/* Header */}
         <header className="mb-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">Välkommen till din ST-plan</h2>
-              <p className="text-slate-500 max-w-xl">
-                Här kan du enkelt följa din specialiseringstjänstgöring. Bocka av aktiviteter, uppdatera status och se din totala progress i realtid.
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">Hej {currentUser.name.split(' ')[1]}!</h2>
+              <p className="text-slate-500 max-w-xl text-lg">
+                Här är din individuella utbildningsplan. Fortsätt bocka av dina mål för att nå din specialistkompetens.
               </p>
             </div>
             <div className="flex items-center gap-4 bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
@@ -184,6 +277,8 @@ export default function App() {
                     goal={goal} 
                     onStatusChange={handleStatusChange}
                     onActivityToggle={handleActivityToggle}
+                    onActivityAdd={handleActivityAdd}
+                    onActivityDelete={handleActivityDelete}
                   />
                 </motion.div>
               ))
